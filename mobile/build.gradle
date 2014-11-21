@@ -30,6 +30,7 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     wearApp project(':wear')
-    compile 'com.google.android.gms:play-services:+'
+    compile 'com.google.android.gms:play-services:6.1.+'
     compile 'org.springframework.android:spring-android-rest-template:2.0.0.BUILD-SNAPSHOT'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.0.1'
 }

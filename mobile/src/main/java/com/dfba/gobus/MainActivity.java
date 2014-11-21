@@ -6,9 +6,21 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.location.*;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity{
+
+    private GoogleApiClient mGoogleApiClient;
+
 
 
     @Override
@@ -16,30 +28,44 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        this.getApplicationContext();
-        LocationManager locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+        final Button button = (Button) findViewById(R.id.button);
+        final TextView textView = (TextView) findViewById(R.id.editText);
 
-
-        LocationListener locationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-                // Called when a new location is found by the network location provider.
-                //makeUseOfNewLocation(location);
-                Log.e("position", Double.toString(location.getLatitude())+" "+Double.toString(location.getLongitude()));
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new GeoLocationTask(MainActivity.this).execute(textView.getText().toString());
             }
+        });
 
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Wearable.API)
+                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                    @Override
+                    public void onConnected(Bundle connectionHint) {
+                        Log.d("", "onConnected: " + connectionHint);
+                    }
+                    @Override
+                    public void onConnectionSuspended(int cause) {
+                        Log.d("", "onConnectionSuspended: " + cause);
+                    }
+                })
+                .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(ConnectionResult result) {
+                        Log.d("", "onConnectionFailed: " + result);
+                    }
+                })
+                .build();
 
-            public void onProviderEnabled(String provider) {}
+       /* if (!mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.connect();
+        }*/
 
-            public void onProviderDisabled(String provider) {}
-        };
 
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5, 500, locationListener);
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 3, 0, locationListener);
 
 
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -61,5 +87,36 @@ public class MainActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /*@Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mGoogleApiClient.disconnect();
+    }*/
+
+
+    private void sendNotification() {
+        if (mGoogleApiClient.isConnected()) {
+            PutDataMapRequest dataMapRequest = PutDataMapRequest.create("/notification");
+            // Make sure the data item is unique. Usually, this will not be required, as the payload
+            // (in this case the title and the content of the notification) will be different for almost all
+            // situations. However, in this example, the text and the content are always the same, so we need
+            // to disambiguate the data item by adding a field that contains teh current time in milliseconds.
+            dataMapRequest.getDataMap().putDouble("timestamp", System.currentTimeMillis());
+            dataMapRequest.getDataMap().putString("title", "This is the title");
+            dataMapRequest.getDataMap().putString("content", "This is a notification with some text.");
+            PutDataRequest putDataRequest = dataMapRequest.asPutDataRequest();
+            Wearable.DataApi.putDataItem(mGoogleApiClient, putDataRequest);
+        }
+        else {
+            Log.e("", "No connection to wearable available!");
+        }
     }
 }
