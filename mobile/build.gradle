@@ -4,6 +4,14 @@ android {
     compileSdkVersion 21
     buildToolsVersion "21.1.1"
 
+    packagingOptions {
+        exclude 'META-INF/dependencies'
+        exclude 'META-INF/notice'
+        exclude 'META-INF/license'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/notice.txt'
+    }
+
     defaultConfig {
         applicationId "com.dfba.gobus"
         minSdkVersion 19
