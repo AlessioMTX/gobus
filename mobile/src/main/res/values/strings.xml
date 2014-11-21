@@ -4,5 +4,7 @@
     <string name="app_name">GoBus</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="fild_text_address">Insert your destination address</string>
+    <string name="button_main">Go</string>
 
 </resources>
